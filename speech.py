@@ -1,26 +1,14 @@
+import azure.cognitiveservices.speech as speechsdk
 import os
-from azure.ai.textanalytics import TextAnalyticsClient
-from azure.core.credentials import AzureKeyCredential
 
-# Set the endpoint and key
-endpoint = os.getenv("TEXT_ANALYTICS_ENDPOINT")
-key = os.getenv("TEXT_ANALYTICS_KEY")
+speech = speechsdk.SpeechRecognizer(
+    speech_config=speechsdk.SpeechConfig(subscription=os.getenv("SPEECH_KEY"), endpoint=os.getenv("SPEECH_ENDPOINT")),
+    language="en-US")
 
-# Create the TextAnalyticsClient
-client = TextAnalyticsClient(endpoint=endpoint, credential=AzureKeyCredential(key))
+audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True)
 
-def recognize_pii_entities(texts):
-    """
-    Recognize Personally Identifiable Information (PII) entities in the given texts.
+synthesizer = speechsdk.SpeechSynthesizer(speech_config=speechsdk.SpeechConfig(subscription=os.getenv("SPEECH_KEY"), endpoint=os.getenv("SPEECH_ENDPOINT")), audio_config=audio_config)
 
-    :param texts: A list of strings to analyze for PII entities.
-    :return: The response from the Text Analytics service.
-    """
-    response = client.recognize_pii_entities(texts)
-    return response
+text = input("Enter text to synthesize: ")
 
-result = recognize_pii_entities(["My name is John Doe and my email is john.doe@example.com"])
-print(result)
-print("Recognized PII entities:")
-for entity in result[0].entities:
-    print(f"Text: {entity.text}, Category: {entity.category}, Subcategory: {entity.subcategory}, Confidence Score: {entity.confidence_score}")
+synthesis_result = synthesizer.speak_text_async(text).get()
